@@ -39,6 +39,20 @@ public class Collage {
     public Collage (String filename) {
 
         // WRITE YOUR CODE HERE
+        this.collageDimension = 4;
+        this.tileDimension = 150;
+
+        this.originalPicture = new Picture(filename);
+        this.collagePicture = new Picture(this.tileDimension * this.collageDimension, this.tileDimension * this.collageDimension);
+
+        for (int col = 0; col < (this.tileDimension * this.collageDimension); col++){
+            for (int row = 0; row < (this.tileDimension * this.collageDimension); row++){
+                int scol = col * this.originalPicture.width() / (this.tileDimension * this.collageDimension);
+                int srow = row * this.originalPicture.height() / (this.tileDimension * this.collageDimension);
+                Color color = this.originalPicture.get(scol, srow);
+                this.collagePicture.set(col, row, color);
+            }
+        }
     }
 
     /*
@@ -53,7 +67,20 @@ public class Collage {
      */    
     public Collage (String filename, int td, int cd) {
 
-        // WRITE YOUR CODE HERE
+        this.collageDimension = cd;
+        this.tileDimension = td;
+        this.originalPicture = new Picture(filename);
+
+        this.collagePicture = new Picture(this.tileDimension * this.collageDimension, this.tileDimension * this.collageDimension);
+
+        for (int col = 0; col < (this.tileDimension * this.collageDimension); col++){
+            for (int row = 0; row < (this.tileDimension * this.collageDimension); row++){
+                int scol = col * this.originalPicture.width() / (this.tileDimension * this.collageDimension);
+                int srow = row * this.originalPicture.height() / (this.tileDimension * this.collageDimension);
+                Color color = this.originalPicture.get(scol, srow);
+                this.collagePicture.set(col, row, color);
+            }
+        }
     }
 
 
@@ -65,9 +92,20 @@ public class Collage {
      * @param source is the image to be scaled.
      * @param target is the 
      */
-    public static void scale (Picture source, Picture target) {
-
-        // WRITE YOUR CODE HERE
+    public static void scale(Picture source, Picture target) {
+        int sourceWidth = source.width();
+        int sourceHeight = source.height();
+        int targetWidth = target.width();
+        int targetHeight = target.height();
+    
+        for (int targetCol = 0; targetCol < targetWidth; targetCol++) {
+            for (int targetRow = 0; targetRow < targetHeight; targetRow++) {
+                int sourceCol = targetCol * sourceWidth / targetWidth;
+                int sourceRow = targetRow * sourceHeight / targetHeight;
+                Color color = source.get(sourceCol, sourceRow);
+                target.set(targetCol, targetRow, color);
+            }
+        }
     }
 
      /*
@@ -121,7 +159,7 @@ public class Collage {
      * Assumes that collage has been initialized
      */    
     public void showCollagePicture() {
-	    collagePicture.show();
+        collagePicture.show();
     }
 
     /*
@@ -130,10 +168,41 @@ public class Collage {
      * where each tile has tileDimension X tileDimension pixels.
      */    
     public void makeCollage () {
+        Picture n = new Picture(this.tileDimension, this.tileDimension);
+        
+        for (int col = 0; col < this.tileDimension; col++){
+            for (int row = 0; row < this.tileDimension; row++){
 
-        // WRITE YOUR CODE HERE
+                int scol = col * this.originalPicture.width() / this.tileDimension;
+                int srow = row * this.originalPicture.height() / this.tileDimension;
+                Color color = this.originalPicture.get(scol, srow);
+                n.set(col, row, color);
+            }
+        }
+
+        int fcol = 0;
+        for (int col = 0; col < (this.tileDimension * this.collageDimension); col++){
+
+            if (fcol == this.tileDimension){
+                fcol = 0;
+            }
+            
+            int frow = 0;
+            for (int row = 0; row < (this.tileDimension * this.collageDimension); row++){
+
+                if (frow == this.tileDimension){
+                    frow = 0;
+                }
+                Color color = n.get(fcol, frow);
+                this.collagePicture.set(col, row, color);
+                frow++;
+            }
+            fcol++;
+        }
+        
     }
-
+        // WRITE YOUR CODE HERE
+    
     /*
      * Colorizes the tile at (collageCol, collageRow) with component 
      * (see Week 9 slides, the code for color separation is at the 
@@ -144,6 +213,32 @@ public class Collage {
      * @param collageRow tile row
      */
     public void colorizeTile (String component,  int collageCol, int collageRow) {
+
+        int r = 0;
+        int g = 0;
+        int b = 0;
+
+        int replaceColumn = collageCol * this.tileDimension;
+        int replaceRow = collageRow * this.tileDimension;
+        
+        for (int col = replaceColumn; col < (replaceColumn + this.tileDimension); col++){
+            for (int row = replaceRow; row < (replaceRow + this.tileDimension); row++){
+                
+                Color color = this.collagePicture.get(col, row);
+
+                if (component == "red"){
+                    r = color.getRed();
+                }
+                else if (component == "green"){
+                    g = color.getGreen();
+                }
+                else if (component == "blue"){
+                   b = color.getBlue(); 
+                }
+
+                this.collagePicture.set(col, row, new Color(r, g, b));
+            }
+        }
 
         // WRITE YOUR CODE HERE
     }
@@ -158,8 +253,38 @@ public class Collage {
      */
     public void replaceTile (String filename,  int collageCol, int collageRow) {
 
+        int replaceColumn = collageCol * this.tileDimension;
+        int replaceRow = collageRow * this.tileDimension;
+
+        Picture m = new Picture(filename);
+        Picture n = new Picture(this.tileDimension, this.tileDimension);
+
+        for (int col = 0; col < this.tileDimension; col++){
+            for (int row = 0; row < this.tileDimension; row++){
+
+                int scol = col * m.width() / this.tileDimension;
+                int srow = row * m.height() / this.tileDimension;
+                Color color =m.get(scol, srow);
+                n.set(col, row, color);
+            }
+        }
+
+        for (int col = 0; col < this.tileDimension; col++){
+            replaceRow = collageRow * this.tileDimension;
+            
+            for (int row = 0; row < this.tileDimension; row++){
+
+                Color color = n.get(col, row);
+                this.collagePicture.set(replaceColumn, replaceRow, color);
+                replaceRow++;
+            }
+
+            replaceColumn++;
+        }
+
+    
+}
         // WRITE YOUR CODE HERE
-    }
 
     /*
      * Grayscale tile at (collageCol, collageRow)
@@ -168,8 +293,18 @@ public class Collage {
      * @param collageRow tile row
      */
     public void grayscaleTile (int collageCol, int collageRow) {
+        int replaceColumn = collageCol * this.tileDimension;
+        int replaceRow = collageRow * this.tileDimension;
+        
+        for (int col = replaceColumn; col < (replaceColumn + this.tileDimension); col++){
+            for (int row = replaceRow; row < (replaceRow + this.tileDimension); row++){
 
-        // WRITE YOUR CODE HERE
+                Color color = this.collagePicture.get(col, row);
+                Color gray = toGray(color);
+                this.collagePicture.set(col, row, gray);
+            }
+        }
+
     }
 
     /**
